@@ -12,18 +12,31 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 function App() {
   const [prompt, setPrompt] = useState("");
-  const [apiKey, setApiKey] = useState("");
+  const [apiKeys, setApiKeys] = useState({
+    openai: "",
+    anthropic: "",
+    groq: ""
+  });
   const [improverPrompt, setImproverPrompt] = useState(
     "Improve the following prompt by making it more specific, clear, and structured:"
   );
   const { toast } = useToast();
 
   useEffect(() => {
-    const savedKey = localStorage.getItem("openai_api_key");
+    const savedKeys = {
+      openai: localStorage.getItem("openai_api_key") || "",
+      anthropic: localStorage.getItem("anthropic_api_key") || "",
+      groq: localStorage.getItem("groq_api_key") || ""
+    };
     const savedImproverPrompt = localStorage.getItem("improver_prompt");
-    if (savedKey) setApiKey(savedKey);
+    setApiKeys(savedKeys);
     if (savedImproverPrompt) setImproverPrompt(savedImproverPrompt);
   }, []);
+
+  const handleApiKeyChange = (provider: keyof typeof apiKeys, value: string) => {
+    setApiKeys(prev => ({ ...prev, [provider]: value }));
+    localStorage.setItem(`${provider}_api_key`, value);
+  };
 
   const handleImprove = async () => {
     if (!prompt.trim()) {
@@ -35,16 +48,15 @@ function App() {
       return;
     }
 
-    if (!apiKey) {
+    if (!Object.values(apiKeys).some(key => key)) {
       toast({
-        title: "Please enter your OpenAI API key in settings",
+        title: "Please enter at least one API key in settings",
         variant: "destructive",
         duration: 1500,
       });
       return;
     }
 
-    localStorage.setItem("openai_api_key", apiKey);
     localStorage.setItem("improver_prompt", improverPrompt);
 
     toast({
@@ -53,8 +65,10 @@ function App() {
     });
   };
 
+  const hasNoKeys = !Object.values(apiKeys).some(key => key);
+
   return (
-    <div className="min-h-screen bg-background dark">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto p-4 max-w-3xl">
         <div className="flex flex-col space-y-6">
           <div className="flex items-center justify-between">
@@ -64,10 +78,10 @@ function App() {
               <PopoverTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
                   <Settings2 className="h-4 w-4" />
-                  {!apiKey && (
+                  {hasNoKeys && (
                     <span className="absolute -top-1 -right-1 h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
                     </span>
                   )}
                 </Button>
@@ -85,25 +99,37 @@ function App() {
                         id="openai-key"
                         type="password"
                         placeholder="sk-..."
-                        value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
+                        value={apiKeys.openai}
+                        onChange={(e) => handleApiKeyChange('openai', e.target.value)}
                         className="font-mono"
                       />
-                      <p className="text-xs text-muted-foreground">
-                        Your API key is stored locally and never sent to our servers
-                      </p>
                     </div>
-                    {/* Placeholder for future API providers */}
-                    <div className="space-y-2 opacity-50">
-                      <Label htmlFor="anthropic-key">Anthropic API Key (Coming soon)</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="anthropic-key">Anthropic API Key</Label>
                       <Input 
                         id="anthropic-key"
                         type="password"
                         placeholder="sk-ant-..."
-                        disabled
+                        value={apiKeys.anthropic}
+                        onChange={(e) => handleApiKeyChange('anthropic', e.target.value)}
                         className="font-mono"
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="groq-key">Groq API Key (Llama)</Label>
+                      <Input 
+                        id="groq-key"
+                        type="password"
+                        placeholder="gsk_..."
+                        value={apiKeys.groq}
+                        onChange={(e) => handleApiKeyChange('groq', e.target.value)}
+                        className="font-mono"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      🔒 Your API keys are stored securely in your browser's local storage and are never transmitted to any server.
+                      They are only used to make direct API calls from your browser to the respective AI providers.
+                    </p>
                   </TabsContent>
                   <TabsContent value="config" className="space-y-4">
                     <div className="space-y-2">
