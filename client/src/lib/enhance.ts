@@ -23,9 +23,9 @@ const modelRules = {
     contextLevel: "high",
     provider: "anthropic",
   },
-  'llama': {
-    prefix: "For Llama models via Groq, use simple and clear language.",
-    contextLevel: "low",
+  'llama3': {
+    prefix: "For Llama 3 models via Groq, use simple and clear language.",
+    contextLevel: "high",
     provider: "groq",
   },
 };
@@ -81,7 +81,7 @@ async function callGroq(prompt: string, apiKey: string) {
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "llama2-70b-4096",
+      model: "llama3-70b-4096",  
       messages: [{ role: "user", content: prompt }],
     }),
   });

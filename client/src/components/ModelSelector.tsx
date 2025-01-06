@@ -20,7 +20,7 @@ export function ModelSelector({ model, onModelChange }: ModelSelectorProps) {
           <SelectItem value="gpt-4">GPT-4</SelectItem>
           <SelectItem value="gpt-3.5">GPT-3.5</SelectItem>
           <SelectItem value="claude">Claude</SelectItem>
-          <SelectItem value="llama">Llama 2</SelectItem>
+          <SelectItem value="llama3">Llama 3</SelectItem>
         </SelectContent>
       </Select>
     </div>
