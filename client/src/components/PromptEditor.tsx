@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 interface PromptEditorProps {
@@ -18,18 +17,12 @@ export function PromptEditor({ value, onChange }: PromptEditorProps) {
   }, [value]);
 
   return (
-    <div className="space-y-4">
-      <Label htmlFor="prompt" className="text-sm font-medium">
-        Original Prompt
-      </Label>
-      <Textarea
-        ref={textareaRef}
-        id="prompt"
-        placeholder="Enter your prompt here..."
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="min-h-[200px] font-mono text-sm resize-none bg-card"
-      />
-    </div>
+    <Textarea
+      ref={textareaRef}
+      placeholder="Can you make this prompt better"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="min-h-[100px] font-mono text-sm resize-none bg-card"
+    />
   );
 }

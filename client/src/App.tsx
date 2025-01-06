@@ -1,46 +1,60 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Sun, Moon } from "lucide-react";
+import { Wand2 } from "lucide-react";
 import { PromptEditor } from "./components/PromptEditor";
-import { ModelSelector } from "./components/ModelSelector";
 import { EnhancedOutput } from "./components/EnhancedOutput";
 import { useState } from "react";
 
 function App() {
   const [prompt, setPrompt] = useState("");
-  const [model, setModel] = useState("gpt-4");
+  const [isEnhanced, setIsEnhanced] = useState(false);
   const { toast } = useToast();
-  const [isDark, setIsDark] = useState(true);
 
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-    document.documentElement.classList.toggle("dark");
-    toast({
-      title: `Switched to ${isDark ? "light" : "dark"} mode`,
-      duration: 1500,
-    });
+  const handleImprove = () => {
+    if (!prompt.trim()) {
+      toast({
+        title: "Please enter a prompt first",
+        variant: "destructive",
+        duration: 1500,
+      });
+      return;
+    }
+    setIsEnhanced(true);
   };
 
   return (
-    <div className={`min-h-screen bg-background ${isDark ? "dark" : ""}`}>
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold text-foreground">Prompt Enhancement Tool</h1>
-          <Button variant="ghost" size="icon" onClick={toggleTheme}>
-            {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </Button>
-        </div>
+    <div className="min-h-screen bg-background dark">
+      <div className="container mx-auto p-4 max-w-3xl">
+        <div className="flex flex-col space-y-6">
+          <div className="flex items-center gap-2">
+            <img src="/replit.svg" alt="Replit" className="h-8 w-8" />
+            <h1 className="text-xl font-semibold text-foreground">Create with Replit Agent</h1>
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="p-4">
-            <ModelSelector model={model} onModelChange={setModel} />
-            <PromptEditor value={prompt} onChange={setPrompt} />
-          </Card>
+          <h2 className="text-2xl font-bold text-foreground">What do you want to build today?</h2>
 
           <Card className="p-4">
-            <EnhancedOutput originalPrompt={prompt} model={model} />
+            <div className="space-y-4">
+              <PromptEditor value={prompt} onChange={(val) => { setPrompt(val); setIsEnhanced(false); }} />
+
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setIsEnhanced(false)}>
+                  Reset
+                </Button>
+                <Button onClick={handleImprove} className="gap-2">
+                  <Wand2 className="h-4 w-4" />
+                  Improve prompt
+                </Button>
+              </div>
+            </div>
           </Card>
+
+          {isEnhanced && prompt && (
+            <Card className="p-4">
+              <EnhancedOutput originalPrompt={prompt} />
+            </Card>
+          )}
         </div>
       </div>
     </div>
