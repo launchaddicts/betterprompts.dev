@@ -80,8 +80,8 @@ function App() {
                   <Settings2 className="h-4 w-4" />
                   {hasNoKeys && (
                     <span className="absolute -top-1 -right-1 h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                     </span>
                   )}
                 </Button>
@@ -95,7 +95,7 @@ function App() {
                   <TabsContent value="apis" className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="openai-key">OpenAI API Key</Label>
-                      <Input 
+                      <Input
                         id="openai-key"
                         type="password"
                         placeholder="sk-..."
@@ -106,7 +106,7 @@ function App() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="anthropic-key">Anthropic API Key</Label>
-                      <Input 
+                      <Input
                         id="anthropic-key"
                         type="password"
                         placeholder="sk-ant-..."
@@ -117,7 +117,7 @@ function App() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="groq-key">Groq API Key (Llama)</Label>
-                      <Input 
+                      <Input
                         id="groq-key"
                         type="password"
                         placeholder="gsk_..."
