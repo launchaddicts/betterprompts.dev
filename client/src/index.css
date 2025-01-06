@@ -8,6 +8,15 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased bg-[#1a1b26] text-foreground;
+  }
+
+  /* Add a softer background for cards and UI elements */
+  .bg-background {
+    background-color: #1a1b26;
+  }
+
+  .bg-card {
+    background-color: #24283b;
   }
 }
