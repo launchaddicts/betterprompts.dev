@@ -149,6 +149,13 @@ function App() {
                   </TabsContent>
                   <TabsContent value="config" className="space-y-4">
                     <div className="space-y-2">
+                      <Label htmlFor="model-select">Model Selection</Label>
+                      <ModelSelector model={selectedModel} onModelChange={handleModelChange} />
+                      <p className="text-xs text-muted-foreground">
+                        Select which AI model to use for improving your prompts
+                      </p>
+                    </div>
+                    <div className="space-y-2">
                       <Label htmlFor="improver-prompt">Improvement Prompt</Label>
                       <Textarea
                         id="improver-prompt"
@@ -171,7 +178,6 @@ function App() {
 
           <Card className="p-4">
             <div className="space-y-4">
-              <ModelSelector model={selectedModel} onModelChange={handleModelChange} />
               <PromptEditor value={prompt} onChange={setPrompt} />
 
               <div className="flex justify-end">
