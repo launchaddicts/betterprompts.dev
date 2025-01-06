@@ -3,15 +3,23 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Wand2 } from "lucide-react";
 import { PromptEditor } from "./components/PromptEditor";
-import { EnhancedOutput } from "./components/EnhancedOutput";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 function App() {
   const [prompt, setPrompt] = useState("");
-  const [isEnhanced, setIsEnhanced] = useState(false);
+  const [apiKey, setApiKey] = useState("");
   const { toast } = useToast();
 
-  const handleImprove = () => {
+  useEffect(() => {
+    const savedKey = localStorage.getItem("openai_api_key");
+    if (savedKey) {
+      setApiKey(savedKey);
+    }
+  }, []);
+
+  const handleImprove = async () => {
     if (!prompt.trim()) {
       toast({
         title: "Please enter a prompt first",
@@ -20,7 +28,24 @@ function App() {
       });
       return;
     }
-    setIsEnhanced(true);
+
+    if (!apiKey) {
+      toast({
+        title: "Please enter your OpenAI API key",
+        variant: "destructive",
+        duration: 1500,
+      });
+      return;
+    }
+
+    // Store API key in localStorage
+    localStorage.setItem("openai_api_key", apiKey);
+
+    // Here you would make the API call directly to OpenAI
+    toast({
+      title: "Ready to improve prompts!",
+      duration: 1500,
+    });
   };
 
   return (
@@ -36,25 +61,27 @@ function App() {
 
           <Card className="p-4">
             <div className="space-y-4">
-              <PromptEditor value={prompt} onChange={(val) => { setPrompt(val); setIsEnhanced(false); }} />
+              <PromptEditor value={prompt} onChange={setPrompt} />
+              <div className="space-y-2">
+                <Label htmlFor="api-key">OpenAI API Key</Label>
+                <Input 
+                  id="api-key"
+                  type="password"
+                  placeholder="sk-..."
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="font-mono"
+                />
+              </div>
 
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsEnhanced(false)}>
-                  Reset
-                </Button>
+              <div className="flex justify-end">
                 <Button onClick={handleImprove} className="gap-2">
                   <Wand2 className="h-4 w-4" />
-                  Improve prompt
+                  Start building
                 </Button>
               </div>
             </div>
           </Card>
-
-          {isEnhanced && prompt && (
-            <Card className="p-4">
-              <EnhancedOutput originalPrompt={prompt} />
-            </Card>
-          )}
         </div>
       </div>
     </div>
