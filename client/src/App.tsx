@@ -105,12 +105,12 @@ function App() {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-96">
-                <Tabs defaultValue="config" className="w-full">
+                <Tabs defaultValue="model" className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="config">Configuration</TabsTrigger>
-                    <TabsTrigger value="apis">API Keys</TabsTrigger>
+                    <TabsTrigger value="model">Model & API</TabsTrigger>
+                    <TabsTrigger value="prompt">Prompt Settings</TabsTrigger>
                   </TabsList>
-                  <TabsContent value="config" className="space-y-4">
+                  <TabsContent value="model" className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="model-select">Model Selection</Label>
                       <ModelSelector model={selectedModel} onModelChange={handleModelChange} />
@@ -118,21 +118,7 @@ function App() {
                         Select which AI model to use for improving your prompts
                       </p>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="improver-prompt">Improvement Prompt</Label>
-                      <Textarea
-                        id="improver-prompt"
-                        placeholder="Enter the prompt used to improve user input..."
-                        value={improverPrompt}
-                        onChange={(e) => setImproverPrompt(e.target.value)}
-                        className="min-h-[100px] font-mono text-sm"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Customize how the AI improves your prompts
-                      </p>
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="apis" className="space-y-4">
+
                     {currentProvider === 'openai' && (
                       <div className="space-y-2">
                         <Label htmlFor="openai-key">OpenAI API Key</Label>
@@ -176,6 +162,21 @@ function App() {
                       🔒 Your API keys are stored securely in your browser's local storage and are never transmitted to any server.
                       They are only used to make direct API calls from your browser to the respective AI providers.
                     </p>
+                  </TabsContent>
+                  <TabsContent value="prompt" className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="improver-prompt">Improvement Prompt</Label>
+                      <Textarea
+                        id="improver-prompt"
+                        placeholder="Enter the prompt used to improve user input..."
+                        value={improverPrompt}
+                        onChange={(e) => setImproverPrompt(e.target.value)}
+                        className="min-h-[100px] font-mono text-sm"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Customize how the AI improves your prompts
+                      </p>
+                    </div>
                   </TabsContent>
                 </Tabs>
               </PopoverContent>
