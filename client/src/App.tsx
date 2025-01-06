@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EnhancedOutput } from "./components/EnhancedOutput";
 
 function App() {
   const [prompt, setPrompt] = useState("");
@@ -193,6 +194,13 @@ function App() {
                   Improve prompt
                 </Button>
               </div>
+
+              <EnhancedOutput 
+                originalPrompt={prompt}
+                model={selectedModel}
+                apiKey={apiKeys[currentProvider]}
+                systemPrompt={improverPrompt}
+              />
             </div>
           </Card>
         </div>
