@@ -82,6 +82,7 @@ function App() {
   };
 
   const hasNoKeys = !Object.values(apiKeys).some(key => key);
+  const currentProvider = getProviderForModel(selectedModel);
 
   return (
     <div className="min-h-screen bg-background">
@@ -103,50 +104,11 @@ function App() {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-96">
-                <Tabs defaultValue="apis" className="w-full">
+                <Tabs defaultValue="config" className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="apis">API Keys</TabsTrigger>
                     <TabsTrigger value="config">Configuration</TabsTrigger>
+                    <TabsTrigger value="apis">API Keys</TabsTrigger>
                   </TabsList>
-                  <TabsContent value="apis" className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="openai-key">OpenAI API Key</Label>
-                      <Input
-                        id="openai-key"
-                        type="password"
-                        placeholder="sk-..."
-                        value={apiKeys.openai}
-                        onChange={(e) => handleApiKeyChange('openai', e.target.value)}
-                        className="font-mono"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="anthropic-key">Anthropic API Key</Label>
-                      <Input
-                        id="anthropic-key"
-                        type="password"
-                        placeholder="sk-ant-..."
-                        value={apiKeys.anthropic}
-                        onChange={(e) => handleApiKeyChange('anthropic', e.target.value)}
-                        className="font-mono"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="groq-key">Groq API Key (Llama)</Label>
-                      <Input
-                        id="groq-key"
-                        type="password"
-                        placeholder="gsk_..."
-                        value={apiKeys.groq}
-                        onChange={(e) => handleApiKeyChange('groq', e.target.value)}
-                        className="font-mono"
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      🔒 Your API keys are stored securely in your browser's local storage and are never transmitted to any server.
-                      They are only used to make direct API calls from your browser to the respective AI providers.
-                    </p>
-                  </TabsContent>
                   <TabsContent value="config" className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="model-select">Model Selection</Label>
@@ -169,6 +131,51 @@ function App() {
                       </p>
                     </div>
                   </TabsContent>
+                  <TabsContent value="apis" className="space-y-4">
+                    {currentProvider === 'openai' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="openai-key">OpenAI API Key</Label>
+                        <Input
+                          id="openai-key"
+                          type="password"
+                          placeholder="sk-..."
+                          value={apiKeys.openai}
+                          onChange={(e) => handleApiKeyChange('openai', e.target.value)}
+                          className="font-mono"
+                        />
+                      </div>
+                    )}
+                    {currentProvider === 'anthropic' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="anthropic-key">Anthropic API Key</Label>
+                        <Input
+                          id="anthropic-key"
+                          type="password"
+                          placeholder="sk-ant-..."
+                          value={apiKeys.anthropic}
+                          onChange={(e) => handleApiKeyChange('anthropic', e.target.value)}
+                          className="font-mono"
+                        />
+                      </div>
+                    )}
+                    {currentProvider === 'groq' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="groq-key">Groq API Key (Llama)</Label>
+                        <Input
+                          id="groq-key"
+                          type="password"
+                          placeholder="gsk_..."
+                          value={apiKeys.groq}
+                          onChange={(e) => handleApiKeyChange('groq', e.target.value)}
+                          className="font-mono"
+                        />
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      🔒 Your API keys are stored securely in your browser's local storage and are never transmitted to any server.
+                      They are only used to make direct API calls from your browser to the respective AI providers.
+                    </p>
+                  </TabsContent>
                 </Tabs>
               </PopoverContent>
             </Popover>
@@ -183,7 +190,7 @@ function App() {
               <div className="flex justify-end">
                 <Button onClick={handleImprove} className="gap-2">
                   <Wand2 className="h-4 w-4" />
-                  Start building
+                  Improve prompt
                 </Button>
               </div>
             </div>
