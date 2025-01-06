@@ -11,52 +11,123 @@ const modelRules = {
   'gpt-4': {
     prefix: "You are interacting with GPT-4. Be direct and precise.",
     contextLevel: "high",
+    provider: "openai",
   },
   'gpt-3.5': {
     prefix: "For GPT-3.5, break down complex requests.",
     contextLevel: "medium",
+    provider: "openai",
   },
   'claude': {
     prefix: "When working with Claude, provide structured input.",
     contextLevel: "high",
+    provider: "anthropic",
   },
   'llama': {
-    prefix: "For Llama models, use simple and clear language.",
+    prefix: "For Llama models via Groq, use simple and clear language.",
     contextLevel: "low",
+    provider: "groq",
   },
 };
 
+async function callOpenAI(prompt: string, apiKey: string) {
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-4",
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('OpenAI API call failed');
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
+
+async function callAnthropic(prompt: string, apiKey: string) {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: "claude-3-opus-20240229",
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Anthropic API call failed');
+  }
+
+  const data = await response.json();
+  return data.content[0].text;
+}
+
+async function callGroq(prompt: string, apiKey: string) {
+  const response = await fetch('https://api.groq.com/v1/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "llama2-70b-4096",
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Groq API call failed');
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
+
 export async function enhancePrompt(
   prompt: string,
-  model: string
+  model: string,
+  apiKey: string,
+  systemPrompt: string
 ): Promise<EnhancementResult> {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
   const rules = modelRules[model as keyof typeof modelRules];
-  const enhanced = `${rules.prefix}\n\n${enhanceWithRules(prompt, rules)}`;
+  const fullPrompt = `${systemPrompt}\n\n${rules.prefix}\n\nOriginal prompt: ${prompt}`;
+
+  let enhanced: string;
+
+  try {
+    switch (rules.provider) {
+      case 'openai':
+        enhanced = await callOpenAI(fullPrompt, apiKey);
+        break;
+      case 'anthropic':
+        enhanced = await callAnthropic(fullPrompt, apiKey);
+        break;
+      case 'groq':
+        enhanced = await callGroq(fullPrompt, apiKey);
+        break;
+      default:
+        throw new Error('Unknown provider');
+    }
+  } catch (error) {
+    console.error('API call failed:', error);
+    throw error;
+  }
 
   return {
     enhanced,
     metrics: calculateMetrics(prompt, enhanced),
   };
-}
-
-function enhanceWithRules(prompt: string, rules: typeof modelRules[keyof typeof modelRules]): string {
-  let enhanced = prompt;
-
-  // Add structure
-  enhanced = enhanced.trim();
-  if (!enhanced.endsWith('.')) {
-    enhanced += '.';
-  }
-
-  // Add context based on model
-  if (rules.contextLevel === 'high') {
-    enhanced = `Context: This is a prompt for an AI model.\nObjective: Generate high-quality output.\n\nPrompt: ${enhanced}`;
-  }
-
-  return enhanced;
 }
 
 function calculateMetrics(original: string, enhanced: string): { clarity: number; specificity: number; context: number } {

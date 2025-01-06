@@ -1,8 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Wand2, Settings2, AlertCircle } from "lucide-react";
+import { Wand2, Settings2 } from "lucide-react";
 import { PromptEditor } from "./components/PromptEditor";
+import { ModelSelector } from "./components/ModelSelector";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 function App() {
   const [prompt, setPrompt] = useState("");
+  const [selectedModel, setSelectedModel] = useState("gpt-4");
   const [apiKeys, setApiKeys] = useState({
     openai: "",
     anthropic: "",
@@ -29,13 +31,26 @@ function App() {
       groq: localStorage.getItem("groq_api_key") || ""
     };
     const savedImproverPrompt = localStorage.getItem("improver_prompt");
+    const savedModel = localStorage.getItem("selected_model");
     setApiKeys(savedKeys);
     if (savedImproverPrompt) setImproverPrompt(savedImproverPrompt);
+    if (savedModel) setSelectedModel(savedModel);
   }, []);
 
   const handleApiKeyChange = (provider: keyof typeof apiKeys, value: string) => {
     setApiKeys(prev => ({ ...prev, [provider]: value }));
     localStorage.setItem(`${provider}_api_key`, value);
+  };
+
+  const handleModelChange = (model: string) => {
+    setSelectedModel(model);
+    localStorage.setItem("selected_model", model);
+  };
+
+  const getProviderForModel = (model: string) => {
+    if (model.startsWith('gpt')) return 'openai';
+    if (model === 'claude') return 'anthropic';
+    return 'groq';
   };
 
   const handleImprove = async () => {
@@ -48,9 +63,10 @@ function App() {
       return;
     }
 
-    if (!Object.values(apiKeys).some(key => key)) {
+    const provider = getProviderForModel(selectedModel);
+    if (!apiKeys[provider]) {
       toast({
-        title: "Please enter at least one API key in settings",
+        title: `Please enter your ${provider.charAt(0).toUpperCase() + provider.slice(1)} API key in settings`,
         variant: "destructive",
         duration: 1500,
       });
@@ -155,6 +171,7 @@ function App() {
 
           <Card className="p-4">
             <div className="space-y-4">
+              <ModelSelector model={selectedModel} onModelChange={handleModelChange} />
               <PromptEditor value={prompt} onChange={setPrompt} />
 
               <div className="flex justify-end">
