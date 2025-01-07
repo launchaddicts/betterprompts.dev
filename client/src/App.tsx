@@ -123,10 +123,9 @@ function App() {
               </PopoverTrigger>
               <PopoverContent className="w-96">
                 <Tabs defaultValue="model" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="model">Model & API</TabsTrigger>
-                    <TabsTrigger value="template">Templates</TabsTrigger>
-                    <TabsTrigger value="custom">Custom</TabsTrigger>
+                    <TabsTrigger value="improvement">Improvement Style</TabsTrigger>
                   </TabsList>
                   <TabsContent value="model" className="space-y-4">
                     <div className="space-y-2">
@@ -181,31 +180,18 @@ function App() {
                       They are only used to make direct API calls from your browser to the respective AI providers.
                     </p>
                   </TabsContent>
-                  <TabsContent value="template" className="space-y-4">
+                  <TabsContent value="improvement" className="space-y-4">
                     <div className="space-y-2">
-                      <Label>Improvement Templates</Label>
+                      <Label>Improvement Style</Label>
                       <TemplateSelector
                         templates={improvementTemplates}
                         selectedTemplateId={selectedTemplateId}
                         onSelect={handleTemplateChange}
+                        customPrompt={customPrompt}
+                        onCustomPromptChange={(value) => setCustomPrompt(value)}
                       />
                       <p className="text-xs text-muted-foreground">
-                        Choose a template for specific improvement styles
-                      </p>
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="custom" className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="custom-prompt">Custom System Prompt</Label>
-                      <Textarea
-                        id="custom-prompt"
-                        placeholder="Enter your custom system prompt for improvement..."
-                        value={customPrompt}
-                        onChange={(e) => setCustomPrompt(e.target.value)}
-                        className="min-h-[200px] font-mono text-sm"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Write your own custom system prompt for improvement. Leave empty to use the selected template.
+                        Choose a template or create your own custom improvement style
                       </p>
                     </div>
                   </TabsContent>
@@ -227,7 +213,7 @@ function App() {
                 </Button>
               </div>
 
-              <EnhancedOutput 
+              <EnhancedOutput
                 originalPrompt={prompt}
                 model={selectedModel}
                 apiKey={apiKeys[currentProvider]}

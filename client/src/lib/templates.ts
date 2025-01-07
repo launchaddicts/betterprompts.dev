@@ -64,5 +64,11 @@ export const improvementTemplates: TemplateConfig[] = [
 4. Structuring content progression logically
 5. Incorporating assessment points
 6. Adding interactive elements and discussion topics`,
+  },
+  {
+    id: "custom",
+    name: "Custom Template",
+    description: "Create your own improvement template",
+    systemPrompt: "", // Will be filled by user input
   }
 ];
