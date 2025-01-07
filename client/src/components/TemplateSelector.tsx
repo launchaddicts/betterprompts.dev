@@ -3,26 +3,24 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import type { TemplateConfig } from "../lib/templates";
-import { Lock, Unlock } from "lucide-react";
 
 interface TemplateSelectorProps {
   templates: TemplateConfig[];
   selectedTemplateId: string;
   onSelect: (templateId: string) => void;
-  customPrompt: string;
-  onCustomPromptChange: (prompt: string) => void;
+  editedTemplates: Record<string, string>;
+  onTemplateEdit: (templateId: string, prompt: string) => void;
 }
 
 export function TemplateSelector({
   templates,
   selectedTemplateId,
   onSelect,
-  customPrompt,
-  onCustomPromptChange,
+  editedTemplates,
+  onTemplateEdit,
 }: TemplateSelectorProps) {
-  const isCustom = selectedTemplateId === "custom";
   const selectedTemplate = templates.find(t => t.id === selectedTemplateId);
-  const promptText = isCustom ? customPrompt : selectedTemplate?.systemPrompt || "";
+  const currentPrompt = editedTemplates[selectedTemplateId] || selectedTemplate?.systemPrompt || "";
 
   return (
     <div className="space-y-4">
@@ -45,20 +43,12 @@ export function TemplateSelector({
         </div>
       </ScrollArea>
 
-      <div className="relative">
-        <div className="absolute right-2 top-2 text-muted-foreground">
-          {isCustom ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-        </div>
-        <Textarea
-          placeholder={isCustom ? "Enter your custom system prompt for improvement..." : "Select 'Custom Template' to edit..."}
-          value={promptText}
-          onChange={(e) => isCustom && onCustomPromptChange(e.target.value)}
-          readOnly={!isCustom}
-          className={`min-h-[200px] font-mono text-sm pr-8 ${
-            isCustom ? "bg-card" : "bg-muted cursor-not-allowed"
-          }`}
-        />
-      </div>
+      <Textarea
+        placeholder="Edit the system prompt for improvement..."
+        value={currentPrompt}
+        onChange={(e) => onTemplateEdit(selectedTemplateId, e.target.value)}
+        className="min-h-[200px] font-mono text-sm resize-y"
+      />
     </div>
   );
 }

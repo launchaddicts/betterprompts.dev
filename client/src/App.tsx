@@ -9,7 +9,6 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EnhancedOutput } from "./components/EnhancedOutput";
 import { improvementTemplates } from "./lib/templates";
@@ -23,7 +22,7 @@ function App() {
     anthropic: "",
     groq: ""
   });
-  const [customPrompt, setCustomPrompt] = useState("");
+  const [editedTemplates, setEditedTemplates] = useState<Record<string, string>>({});
   const { toast } = useToast();
 
   useEffect(() => {
@@ -34,12 +33,12 @@ function App() {
     };
     const savedTemplateId = localStorage.getItem("selected_template_id");
     const savedModel = localStorage.getItem("selected_model");
-    const savedCustomPrompt = localStorage.getItem("custom_prompt");
+    const savedTemplates = localStorage.getItem("edited_templates");
 
     setApiKeys(savedKeys);
     if (savedTemplateId) setSelectedTemplateId(savedTemplateId);
     if (savedModel) setSelectedModel(savedModel);
-    if (savedCustomPrompt) setCustomPrompt(savedCustomPrompt);
+    if (savedTemplates) setEditedTemplates(JSON.parse(savedTemplates));
   }, []);
 
   const handleApiKeyChange = (provider: keyof typeof apiKeys, value: string) => {
@@ -57,6 +56,14 @@ function App() {
     localStorage.setItem("selected_template_id", templateId);
   };
 
+  const handleTemplateEdit = (templateId: string, newPrompt: string) => {
+    setEditedTemplates(prev => {
+      const updated = { ...prev, [templateId]: newPrompt };
+      localStorage.setItem("edited_templates", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const getProviderForModel = (model: string) => {
     if (model.startsWith('gpt')) return 'openai';
     if (model === 'claude') return 'anthropic';
@@ -64,9 +71,9 @@ function App() {
   };
 
   const getSystemPrompt = () => {
-    if (customPrompt.trim()) return customPrompt;
-    const template = improvementTemplates.find(t => t.id === selectedTemplateId);
-    return template?.systemPrompt || improvementTemplates[0].systemPrompt;
+    return editedTemplates[selectedTemplateId] || 
+           improvementTemplates.find(t => t.id === selectedTemplateId)?.systemPrompt || 
+           improvementTemplates[0].systemPrompt;
   };
 
   const handleImprove = async () => {
@@ -87,10 +94,6 @@ function App() {
         duration: 1500,
       });
       return;
-    }
-
-    if (customPrompt) {
-      localStorage.setItem("custom_prompt", customPrompt);
     }
 
     toast({
@@ -131,9 +134,6 @@ function App() {
                     <div className="space-y-2">
                       <Label htmlFor="model-select">Model Selection</Label>
                       <ModelSelector model={selectedModel} onModelChange={handleModelChange} />
-                      <p className="text-xs text-muted-foreground">
-                        Select which AI model to use for improving your prompts
-                      </p>
                     </div>
 
                     {currentProvider === 'openai' && (
@@ -187,11 +187,11 @@ function App() {
                         templates={improvementTemplates}
                         selectedTemplateId={selectedTemplateId}
                         onSelect={handleTemplateChange}
-                        customPrompt={customPrompt}
-                        onCustomPromptChange={(value) => setCustomPrompt(value)}
+                        editedTemplates={editedTemplates}
+                        onTemplateEdit={handleTemplateEdit}
                       />
                       <p className="text-xs text-muted-foreground">
-                        Choose a template or create your own custom improvement style
+                        Choose and customize improvement templates to your needs
                       </p>
                     </div>
                   </TabsContent>
