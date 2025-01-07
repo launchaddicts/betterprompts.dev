@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Wand2, Settings2 } from "lucide-react";
 import { PromptEditor } from "./components/PromptEditor";
 import { ModelSelector } from "./components/ModelSelector";
+import { TemplateSelector } from "./components/TemplateSelector";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,18 +12,18 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EnhancedOutput } from "./components/EnhancedOutput";
+import { improvementTemplates } from "./lib/templates";
 
 function App() {
   const [prompt, setPrompt] = useState("");
   const [selectedModel, setSelectedModel] = useState("gpt-4");
+  const [selectedTemplateId, setSelectedTemplateId] = useState("general");
   const [apiKeys, setApiKeys] = useState({
     openai: "",
     anthropic: "",
     groq: ""
   });
-  const [improverPrompt, setImproverPrompt] = useState(
-    "Improve the following prompt by making it more specific, clear, and structured:"
-  );
+  const [customPrompt, setCustomPrompt] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -31,11 +32,14 @@ function App() {
       anthropic: localStorage.getItem("anthropic_api_key") || "",
       groq: localStorage.getItem("groq_api_key") || ""
     };
-    const savedImproverPrompt = localStorage.getItem("improver_prompt");
+    const savedTemplateId = localStorage.getItem("selected_template_id");
     const savedModel = localStorage.getItem("selected_model");
+    const savedCustomPrompt = localStorage.getItem("custom_prompt");
+
     setApiKeys(savedKeys);
-    if (savedImproverPrompt) setImproverPrompt(savedImproverPrompt);
+    if (savedTemplateId) setSelectedTemplateId(savedTemplateId);
     if (savedModel) setSelectedModel(savedModel);
+    if (savedCustomPrompt) setCustomPrompt(savedCustomPrompt);
   }, []);
 
   const handleApiKeyChange = (provider: keyof typeof apiKeys, value: string) => {
@@ -48,10 +52,21 @@ function App() {
     localStorage.setItem("selected_model", model);
   };
 
+  const handleTemplateChange = (templateId: string) => {
+    setSelectedTemplateId(templateId);
+    localStorage.setItem("selected_template_id", templateId);
+  };
+
   const getProviderForModel = (model: string) => {
     if (model.startsWith('gpt')) return 'openai';
     if (model === 'claude') return 'anthropic';
     return 'groq';
+  };
+
+  const getSystemPrompt = () => {
+    if (customPrompt.trim()) return customPrompt;
+    const template = improvementTemplates.find(t => t.id === selectedTemplateId);
+    return template?.systemPrompt || improvementTemplates[0].systemPrompt;
   };
 
   const handleImprove = async () => {
@@ -74,7 +89,9 @@ function App() {
       return;
     }
 
-    localStorage.setItem("improver_prompt", improverPrompt);
+    if (customPrompt) {
+      localStorage.setItem("custom_prompt", customPrompt);
+    }
 
     toast({
       title: "Ready to improve prompts!",
@@ -106,9 +123,10 @@ function App() {
               </PopoverTrigger>
               <PopoverContent className="w-96">
                 <Tabs defaultValue="model" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
+                  <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="model">Model & API</TabsTrigger>
-                    <TabsTrigger value="prompt">Prompt Settings</TabsTrigger>
+                    <TabsTrigger value="template">Templates</TabsTrigger>
+                    <TabsTrigger value="custom">Custom</TabsTrigger>
                   </TabsList>
                   <TabsContent value="model" className="space-y-4">
                     <div className="space-y-2">
@@ -163,18 +181,31 @@ function App() {
                       They are only used to make direct API calls from your browser to the respective AI providers.
                     </p>
                   </TabsContent>
-                  <TabsContent value="prompt" className="space-y-4">
+                  <TabsContent value="template" className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="improver-prompt">Improvement Prompt</Label>
-                      <Textarea
-                        id="improver-prompt"
-                        placeholder="Enter the prompt used to improve user input..."
-                        value={improverPrompt}
-                        onChange={(e) => setImproverPrompt(e.target.value)}
-                        className="min-h-[100px] font-mono text-sm"
+                      <Label>Improvement Templates</Label>
+                      <TemplateSelector
+                        templates={improvementTemplates}
+                        selectedTemplateId={selectedTemplateId}
+                        onSelect={handleTemplateChange}
                       />
                       <p className="text-xs text-muted-foreground">
-                        Customize how the AI improves your prompts
+                        Choose a template for specific improvement styles
+                      </p>
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="custom" className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="custom-prompt">Custom System Prompt</Label>
+                      <Textarea
+                        id="custom-prompt"
+                        placeholder="Enter your custom system prompt for improvement..."
+                        value={customPrompt}
+                        onChange={(e) => setCustomPrompt(e.target.value)}
+                        className="min-h-[200px] font-mono text-sm"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Write your own custom system prompt for improvement. Leave empty to use the selected template.
                       </p>
                     </div>
                   </TabsContent>
@@ -200,7 +231,7 @@ function App() {
                 originalPrompt={prompt}
                 model={selectedModel}
                 apiKey={apiKeys[currentProvider]}
-                systemPrompt={improverPrompt}
+                systemPrompt={getSystemPrompt()}
               />
             </div>
           </Card>
