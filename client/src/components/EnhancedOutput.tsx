@@ -11,13 +11,15 @@ interface EnhancedOutputProps {
   model: string;
   apiKey: string;
   systemPrompt: string;
+  onEnhancedTextChange?: (text: string) => void;
 }
 
 export function EnhancedOutput({ 
   originalPrompt, 
   model, 
   apiKey, 
-  systemPrompt 
+  systemPrompt,
+  onEnhancedTextChange
 }: EnhancedOutputProps) {
   const [enhancedPrompt, setEnhancedPrompt] = useState("");
   const [metrics, setMetrics] = useState({ clarity: 0, specificity: 0, context: 0 });
@@ -28,6 +30,7 @@ export function EnhancedOutput({
       if (!originalPrompt.trim()) {
         setEnhancedPrompt("");
         setMetrics({ clarity: 0, specificity: 0, context: 0 });
+        if (onEnhancedTextChange) onEnhancedTextChange("");
         return;
       }
 
@@ -36,6 +39,7 @@ export function EnhancedOutput({
         const result = await enhancePrompt(originalPrompt, model, apiKey, systemPrompt);
         setEnhancedPrompt(result.enhanced);
         setMetrics(result.metrics);
+        if (onEnhancedTextChange) onEnhancedTextChange(result.enhanced);
       } catch (error) {
         console.error("Enhancement failed:", error);
       } finally {
@@ -44,7 +48,7 @@ export function EnhancedOutput({
     }
 
     enhance();
-  }, [originalPrompt, model, apiKey, systemPrompt]);
+  }, [originalPrompt, model, apiKey, systemPrompt, onEnhancedTextChange]);
 
   return (
     <AnimatePresence>
