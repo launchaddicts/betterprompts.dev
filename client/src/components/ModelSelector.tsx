@@ -1,14 +1,17 @@
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 import { useContext } from "react";
 import { ApiKeyContext, ApiKeys } from "../context/ApiKeyContext";
 import { AVAILABLE_MODELS } from "../lib/models"; // Import from shared file
-import { Lock, Check } from "lucide-react"; // Import Lock and Check icons
+import { Lock } from "lucide-react"; // Import Lock icon
+import { Button } from "@/components/ui/button";
 
 // Development mode flag - must match the one in ApiKeyContext
 const DEV_MODE = true;
@@ -57,97 +60,102 @@ export function ModelSelector({ model, onModelChange }: ModelSelectorProps) {
     openSettingsForGroq,
   } = useContext(ApiKeyContext);
 
-  // Count how many models are available per provider
-  const modelsByProvider = AVAILABLE_MODELS.reduce((acc, model) => {
-    acc[model.provider] = (acc[model.provider] || 0) + 1;
-    return acc;
-  }, {} as Record<keyof ApiKeys, number>);
+  // Determine if any API key is present and valid
+  const hasAnyValidKey = Object.entries(apiKeys).some(([provider, key]) =>
+    isValidApiKey(key, provider as keyof ApiKeys)
+  );
 
-  // Count how many valid API keys we have
-  const validProviders = Object.entries(apiKeys).reduce((acc, [provider, key]) => {
-    if (isValidApiKey(key, provider as keyof ApiKeys)) {
-      acc.push(provider as keyof ApiKeys);
-    }
-    return acc;
-  }, [] as (keyof ApiKeys)[]);
-
-  // Get the currently selected model's provider
-  const selectedModelProvider = AVAILABLE_MODELS.find(m => m.id === model)?.provider;
-
-  // Function to open settings for a specific provider
-  const openSettingsForProvider = (provider: keyof ApiKeys) => {
-    console.log(`Opening settings for ${provider}`);
-    if (provider === "openai") {
-      openSettingsForOpenAI();
-    } else if (provider === "anthropic") {
-      openSettingsForAnthropic();
-    } else if (provider === "groq") {
-      openSettingsForGroq();
-    }
+  const handleModelSelection = (selectedModelId: string) => {
+    console.log(`Model selected: ${selectedModelId}`);
+    onModelChange(selectedModelId);
   };
+
+  // Group models by provider
+  const modelsByProvider: Record<keyof ApiKeys, typeof AVAILABLE_MODELS> = {
+    openai: [],
+    anthropic: [],
+    groq: [],
+  };
+
+  AVAILABLE_MODELS.forEach((model) => {
+    modelsByProvider[model.provider].push(model);
+  });
 
   return (
     <div className="w-full">
-      <Select value={model} onValueChange={onModelChange}>
+      <Select value={model} onValueChange={handleModelSelection}>
         <SelectTrigger id="model-select">
-          <SelectValue placeholder="Select a model" />
+          <SelectValue
+            placeholder={
+              hasAnyValidKey ? "Select a model" : "Add API Key in Settings"
+            }
+          />
         </SelectTrigger>
         <SelectContent>
-          {/* Group models by provider */}
-          {(["openai", "anthropic", "groq"] as const).map(provider => {
-            const hasValidKey = isValidApiKey(apiKeys[provider], provider);
-            const modelsForProvider = AVAILABLE_MODELS.filter(m => m.provider === provider);
-            
-            // Skip providers with no models
-            if (modelsForProvider.length === 0) return null;
-            
-            return (
-              <div key={provider} className="py-2">
-                {/* Provider header with status indicator */}
-                <div className="px-2 py-1.5 text-sm font-semibold flex items-center justify-between">
-                  <span>{provider.charAt(0).toUpperCase() + provider.slice(1)}</span>
-                  
-                  {/* API key status and settings button */}
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      openSettingsForProvider(provider);
-                    }}
-                    className={`text-xs px-2 py-0.5 rounded-full ${
-                      hasValidKey 
-                        ? "bg-green-100 text-green-800 hover:bg-green-200"
-                        : "bg-red-100 text-red-800 hover:bg-red-200"
-                    }`}
-                  >
-                    {hasValidKey ? (
-                      <span className="flex items-center">
-                        <Check className="h-3 w-3 mr-1" /> 
-                        API Key
-                      </span>
-                    ) : (
-                      <span className="flex items-center">
-                        <Lock className="h-3 w-3 mr-1" /> 
+          {(Object.keys(modelsByProvider) as Array<keyof ApiKeys>).map(
+            (provider) => {
+              if (modelsByProvider[provider].length === 0) return null;
+
+              const hasValidKey = isValidApiKey(apiKeys[provider], provider);
+
+              return (
+                <SelectGroup key={provider}>
+                  <SelectLabel className="flex items-center justify-between px-2 py-1">
+                    <span>
+                      {provider.charAt(0).toUpperCase() + provider.slice(1)}
+                    </span>
+                    {!hasValidKey && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-6 rounded-full text-xs py-0 px-2 hover:bg-accent hover:text-white transition-colors"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (provider === "openai") {
+                            openSettingsForOpenAI();
+                          } else if (provider === "anthropic") {
+                            openSettingsForAnthropic();
+                          } else if (provider === "groq") {
+                            openSettingsForGroq();
+                          }
+                        }}
+                      >
+                        <Lock className="h-3 w-3 mr-1" />
                         Add API Key
-                      </span>
+                      </Button>
                     )}
-                  </button>
-                </div>
-                
-                {/* Models for this provider */}
-                {modelsForProvider.map(m => (
-                  <SelectItem
-                    key={m.id}
-                    value={m.id}
-                    disabled={!hasValidKey}
-                    className={`pl-4 ${!hasValidKey ? "opacity-50" : ""}`}
-                  >
-                    {m.name}
-                  </SelectItem>
-                ))}
-              </div>
-            );
-          })}
+                  </SelectLabel>
+
+                  {modelsByProvider[provider].map((m) => (
+                    <SelectItem
+                      key={m.id}
+                      value={m.id}
+                      className="pl-6"
+                      disabled={!hasValidKey}
+                      onClick={(e) => {
+                        if (!hasValidKey) {
+                          e.preventDefault();
+                          e.stopPropagation();
+
+                          // Open the settings for this specific provider
+                          if (m.provider === "openai") {
+                            openSettingsForOpenAI();
+                          } else if (m.provider === "anthropic") {
+                            openSettingsForAnthropic();
+                          } else if (m.provider === "groq") {
+                            openSettingsForGroq();
+                          }
+                        }
+                      }}
+                    >
+                      {m.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              );
+            }
+          )}
         </SelectContent>
       </Select>
     </div>

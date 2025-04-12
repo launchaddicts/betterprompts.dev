@@ -33,8 +33,9 @@ export const getProviderForModel = (modelId: string): keyof ApiKeys | null => {
     const model = AVAILABLE_MODELS.find(m => m.id === modelId);
     
     if (model) {
-        console.log(`[models] Found provider for model ${modelId}: ${model.provider}`);
-        return model.provider;
+        const providerKey = model.provider;
+        console.log(`[models] Found provider for model ${modelId}: ${providerKey} (${typeof providerKey})`);
+        return providerKey;
     } else {
         console.log(`[models] No provider found for model ${modelId}`);
         return null;

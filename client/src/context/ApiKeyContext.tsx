@@ -166,8 +166,15 @@ export const ApiKeyProvider: React.FC<ApiKeyProviderProps> = ({ children }) => {
       "[ApiKeyContext] closeSettings called, current highlight:",
       providerToHighlight
     );
-    // Just close the panel, don't clear highlight
+
+    // Just close the panel, but preserve the highlight for next time
     setIsSettingsOpen(false);
+
+    // We explicitly DO NOT clear the highlight here:
+    // setProviderToHighlight(null);
+
+    // This allows the highlight to persist between openings of the settings panel
+    // so when a user selects a model, the appropriate provider will remain highlighted
   }, [providerToHighlight]);
 
   // Check if any key is valid using the validation function

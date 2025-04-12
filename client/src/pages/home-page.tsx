@@ -94,8 +94,25 @@ export default function HomePage() {
     if (!model || model.trim() === "") return;
     const modelObj = AVAILABLE_MODELS.find((m) => m.id === model);
     if (!modelObj) return;
+
+    // Set the selected model in state
     setSelectedModel(model);
     localStorage.setItem("selected_model", model);
+
+    // Highlight the provider for this model when selection changes
+    const provider = modelObj.provider;
+    console.log(
+      `[HomePage] Model changed to ${model}, setting provider highlight to: ${provider}`
+    );
+
+    // Use the appropriate open settings method based on provider
+    if (provider === "openai") {
+      openSettingsForOpenAI();
+    } else if (provider === "anthropic") {
+      openSettingsForAnthropic();
+    } else if (provider === "groq") {
+      openSettingsForGroq();
+    }
   };
 
   const handleTemplateChange = (templateId: string) => {

@@ -157,7 +157,7 @@ function AppContent() {
                           className={cn(
                             "space-y-1 p-3 rounded-md transition-all",
                             providerIsHighlighted
-                              ? "bg-pink-100 dark:bg-purple-900/30 border-2 border-pink-500 shadow-lg animate-pulse"
+                              ? "bg-accent/20 dark:bg-accent/30 border-2 border-accent shadow-lg"
                               : ""
                           )}
                         >
@@ -165,13 +165,13 @@ function AppContent() {
                             htmlFor={provider}
                             className={cn(
                               providerIsHighlighted
-                                ? "font-bold text-pink-700 dark:text-purple-400"
+                                ? "font-bold text-foreground dark:text-foreground"
                                 : ""
                             )}
                           >
                             {getProviderName(provider)}
                             {providerIsHighlighted && (
-                              <span className="ml-2 text-xs bg-pink-200 dark:bg-purple-800 text-pink-800 dark:text-purple-200 font-bold px-2 py-1 rounded-md">
+                              <span className="ml-2 text-xs bg-purple-600 text-white font-bold px-2 py-1 rounded-md">
                                 Required for selected model
                               </span>
                             )}
@@ -188,7 +188,7 @@ function AppContent() {
                             className={cn(
                               "border-2 transition-colors",
                               providerIsHighlighted
-                                ? "border-pink-500 ring-2 ring-purple-400"
+                                ? "border-accent focus:ring-accent/50"
                                 : "border-transparent"
                             )}
                             placeholder={`Enter ${getProviderName(
