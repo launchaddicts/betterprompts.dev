@@ -79,12 +79,37 @@ export default {
             height: "0",
           },
         },
+        shimmer: {
+          "0%": {
+            backgroundPosition: "-200% 0",
+          },
+          "100%": {
+            backgroundPosition: "200% 0",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "shimmer": "shimmer 1.5s infinite linear",
       },
     },
   },
-  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+  plugins: [
+    require("tailwindcss-animate"),
+    require("@tailwindcss/typography"),
+    function ({ addUtilities }) {
+      addUtilities({
+        '.animate-shimmer': {
+          background: 'linear-gradient(90deg, hsl(var(--muted)/0.4) 25%, hsl(var(--muted)/0.8) 50%, hsl(var(--muted)/0.4) 75%)',
+          backgroundSize: '200% 100%',
+          animationName: 'shimmer',
+          animationDuration: '1.5s',
+          animationIterationCount: 'infinite',
+          animationTimingFunction: 'linear',
+        },
+      });
+    },
+  ],
 } satisfies Config;
+
