@@ -5,11 +5,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { useContext } from "react";
 import { ApiKeyContext, ApiKeys } from "../context/ApiKeyContext";
 import { AVAILABLE_MODELS } from "../lib/models"; // Import from shared file
 import { Lock } from "lucide-react"; // Import Lock icon
+
+// Development mode flag - must match the one in ApiKeyContext
+const DEV_MODE = true;
+
+// Function to validate API key format - duplicated from ApiKeyContext
+const isValidApiKey = (key: string, provider: keyof ApiKeys): boolean => {
+  if (DEV_MODE) {
+    return key.trim().length > 0;
+  }
+
+  switch (provider) {
+    case "openai":
+      return key.startsWith("sk-");
+    case "anthropic":
+      return key.startsWith("sk-ant-");
+    case "groq":
+      return key.startsWith("gsk_");
+    default:
+      return false;
+  }
+};
 
 // Define models and their required keys
 // const AVAILABLE_MODELS: { id: string; name: string; provider: keyof ApiKeys }[] = [
@@ -38,14 +58,14 @@ export function ModelSelector({ model, onModelChange }: ModelSelectorProps) {
   // );
   // const hasModels = filteredModels.length > 0;
 
-  // Determine if any API key is present
-  const hasAnyValidKey = Object.values(apiKeys).some(
-    (key) => key?.trim() !== ""
+  // Determine if any API key is present and valid
+  const hasAnyValidKey = Object.entries(apiKeys).some(([provider, key]) =>
+    isValidApiKey(key, provider as keyof ApiKeys)
   );
 
   return (
     <div className="w-full">
-      <Select value={model}>
+      <Select value={model} onValueChange={onModelChange}>
         <SelectTrigger id="model-select">
           <SelectValue
             placeholder={
@@ -55,23 +75,44 @@ export function ModelSelector({ model, onModelChange }: ModelSelectorProps) {
         </SelectTrigger>
         <SelectContent>
           {AVAILABLE_MODELS.map((m) => {
-            const isEnabled = apiKeys[m.provider]?.trim() !== "";
+            const hasValidKey = isValidApiKey(apiKeys[m.provider], m.provider);
 
             return (
               <SelectItem
                 key={m.id}
                 value={m.id}
-                disabled={!isEnabled}
-                aria-disabled={!isEnabled}
+                disabled={!hasValidKey}
+                className="transition-all duration-150"
+                onClick={(e) => {
+                  if (!hasValidKey) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openSettings(m.provider);
+                  }
+                }}
               >
-                <div className="flex items-center space-x-2">
-                  {" "}
-                  {/* Flex container for alignment */}
-                  {!isEnabled && (
-                    <Lock size={14} className="text-muted-foreground" />
-                  )}{" "}
-                  {/* Conditionally render Lock icon */}
-                  <span>{m.name}</span> {/* Model name */}
+                <div
+                  className="flex items-center space-x-2"
+                  onClick={(e) => {
+                    if (!hasValidKey) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      openSettings(m.provider);
+                    }
+                  }}
+                >
+                  {!hasValidKey && (
+                    <Lock
+                      size={14}
+                      className="text-muted-foreground cursor-pointer"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openSettings(m.provider);
+                      }}
+                    />
+                  )}
+                  <span>{m.name}</span>
                 </div>
               </SelectItem>
             );

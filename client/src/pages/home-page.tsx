@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Wand2, Settings2, Share2, Star } from "lucide-react";
+import { Wand2, Settings2, Share2, Star, Edit } from "lucide-react";
 import { PromptEditor } from "../components/PromptEditor";
 import { ModelSelector } from "../components/ModelSelector";
 import {
@@ -14,6 +14,7 @@ import {
 import { useState, useEffect, useContext } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Popover,
   PopoverContent,
@@ -37,6 +38,12 @@ import {
   getProviderForModel,
   getProviderName,
 } from "../lib/models";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function HomePage() {
   const [prompt, setPrompt] = useState("");
@@ -57,6 +64,7 @@ export default function HomePage() {
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareTitle, setShareTitle] = useState("");
   const [enhancedOutput, setEnhancedOutput] = useState("");
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const { toast } = useToast();
   const [, navigate] = useLocation();
 
@@ -202,21 +210,135 @@ export default function HomePage() {
               <Label className="text-xs font-medium text-muted-foreground">
                 Improvement Style
               </Label>
-              <Select
-                value={selectedTemplateId}
-                onValueChange={handleTemplateChange}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select an improvement style..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {improvementTemplates.map((template) => (
-                    <SelectItem key={template.id} value={template.id}>
-                      {template.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Select
+                  value={selectedTemplateId}
+                  onValueChange={handleTemplateChange}
+                  className="flex-1"
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select an improvement style..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {improvementTemplates.map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-10 w-10"
+                        onClick={() => setTemplateDialogOpen(true)}
+                      >
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Edit Template</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>View & Edit Template</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <Dialog
+                  open={templateDialogOpen}
+                  onOpenChange={setTemplateDialogOpen}
+                >
+                  <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {improvementTemplates.find(
+                          (t) => t.id === selectedTemplateId
+                        )?.name || "Template"}{" "}
+                        Details
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="description">Description</Label>
+                        <p
+                          className="text-sm text-muted-foreground"
+                          id="description"
+                        >
+                          {
+                            improvementTemplates.find(
+                              (t) => t.id === selectedTemplateId
+                            )?.description
+                          }
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="template-content">System Prompt</Label>
+                        <Textarea
+                          id="template-content"
+                          className="font-mono text-sm min-h-[200px]"
+                          value={
+                            editedTemplates[selectedTemplateId] ||
+                            improvementTemplates.find(
+                              (t) => t.id === selectedTemplateId
+                            )?.systemPrompt ||
+                            ""
+                          }
+                          onChange={(e) =>
+                            handleTemplateEdit(
+                              selectedTemplateId,
+                              e.target.value
+                            )
+                          }
+                          placeholder="Enter your custom system prompt..."
+                        />
+                        <p className="text-xs text-muted-foreground mt-2">
+                          This prompt will be used to guide the AI in improving
+                          your input prompt.
+                        </p>
+                      </div>
+                    </div>
+                    <DialogFooter className="gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          // Reset to original template
+                          const updatedTemplates = { ...editedTemplates };
+                          delete updatedTemplates[selectedTemplateId];
+                          setEditedTemplates(updatedTemplates);
+                          localStorage.setItem(
+                            "edited_templates",
+                            JSON.stringify(updatedTemplates)
+                          );
+                          toast({
+                            title: "Template Reset",
+                            description:
+                              "The template has been reset to its default value.",
+                            duration: 1500,
+                          });
+                        }}
+                      >
+                        Reset to Default
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setTemplateDialogOpen(false);
+                          toast({
+                            title: "Template Saved",
+                            description:
+                              "Your customized template has been saved.",
+                            duration: 1500,
+                          });
+                        }}
+                      >
+                        Save & Close
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
           </div>
 

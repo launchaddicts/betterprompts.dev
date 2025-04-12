@@ -3,20 +3,47 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Define dark theme variables */
+    --background: 230 15% 10%; /* #171923 - Darker */
+    --foreground: 210 40% 98%; /* #f8f9fa */
+
+    --card: 230 15% 15%; /* #1f212e - Even Darker */
+    --card-foreground: 210 40% 98%; /* #f8f9fa */
+
+    --popover: 231 15% 16%; /* #212432 - Keep dark */
+    --popover-foreground: 210 40% 98%; /* #f8f9fa */
+
+    --primary: 135 94% 65%; /* #50fa7b Neon Green */
+    --primary-foreground: 231 15% 18%; /* #24283b */
+
+    --secondary: 231 10% 45%; /* #6a7089 */
+    --secondary-foreground: 210 40% 98%; /* #f8f9fa */
+
+    --muted: 231 10% 28%; /* #3d4159 - Adjusted */
+    --muted-foreground: 231 10% 65%; /* #9aa5ce */
+
+    --accent: 282 89% 74%; /* #e08aff Neon Pink/Purple */
+    --accent-foreground: 231 15% 18%; /* #24283b */
+
+    --destructive: 0 72% 51%; /* #ff5555 */
+    --destructive-foreground: 210 40% 98%; /* #f8f9fa */
+
+    --border: 231 10% 28%; /* #3d4159 - Adjusted */
+    --input: 231 15% 25%; /* #333950 - Adjusted */
+    --ring: 135 94% 65%; /* #50fa7b Neon Green */
+
+    --radius: 0.5rem;
+  }
+
   * {
     @apply border-border;
   }
 
   body {
-    @apply font-sans antialiased bg-[#1a1b26] text-foreground;
-  }
-
-  /* Add a softer background for cards and UI elements */
-  .bg-background {
-    background-color: #1a1b26;
-  }
-
-  .bg-card {
-    background-color: #24283b;
+    @apply font-sans antialiased bg-background text-foreground;
+    /* Ensure smooth font rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }

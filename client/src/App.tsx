@@ -31,6 +31,7 @@ import {
 } from "./context/ApiKeyContext";
 import { FloatingApiKeyInput } from "./components/FloatingApiKeyInput";
 import { cn } from "./lib/utils";
+import { getProviderName } from "./lib/models";
 
 function App() {
   return (
@@ -97,7 +98,9 @@ function AppContent() {
             <Popover
               open={isSettingsOpen}
               onOpenChange={(open) => {
-                if (!open) {
+                if (open) {
+                  openSettings();
+                } else {
                   closeSettings();
                 }
               }}
@@ -106,7 +109,7 @@ function AppContent() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="hover:text-primary focus-visible:ring-1 focus-visible:ring-ring"
+                  className="h-8 w-8 absolute top-2 right-2"
                 >
                   <Settings2 className="h-4 w-4" />
                   <span className="sr-only">Settings</span>
@@ -121,72 +124,32 @@ function AppContent() {
                     </p>
                   </div>
                   <div className="grid gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="openai-key" className="text-xs">
-                        OpenAI
-                      </Label>
-                      <Input
-                        id="openai-key"
-                        type="password"
-                        placeholder="sk-..."
-                        value={apiKeys.openai}
-                        onChange={(e) =>
-                          setApiKeys((prev) => ({
-                            ...prev,
-                            openai: e.target.value,
-                          }))
-                        }
-                        className={cn(
-                          "font-mono transition-all duration-300 ease-in-out",
-                          providerToHighlight === "openai" &&
-                            "outline outline-2 outline-offset-2 outline-primary ring-2 ring-primary/50 animate-pulse"
-                        )}
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="anthropic-key" className="text-xs">
-                        Anthropic
-                      </Label>
-                      <Input
-                        id="anthropic-key"
-                        type="password"
-                        placeholder="sk-ant-..."
-                        value={apiKeys.anthropic}
-                        onChange={(e) =>
-                          setApiKeys((prev) => ({
-                            ...prev,
-                            anthropic: e.target.value,
-                          }))
-                        }
-                        className={cn(
-                          "font-mono transition-all duration-300 ease-in-out",
-                          providerToHighlight === "anthropic" &&
-                            "outline outline-2 outline-offset-2 outline-primary ring-2 ring-primary/50 animate-pulse"
-                        )}
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="groq-key" className="text-xs">
-                        Groq (Llama)
-                      </Label>
-                      <Input
-                        id="groq-key"
-                        type="password"
-                        placeholder="gsk_..."
-                        value={apiKeys.groq}
-                        onChange={(e) =>
-                          setApiKeys((prev) => ({
-                            ...prev,
-                            groq: e.target.value,
-                          }))
-                        }
-                        className={cn(
-                          "font-mono transition-all duration-300 ease-in-out",
-                          providerToHighlight === "groq" &&
-                            "outline outline-2 outline-offset-2 outline-primary ring-2 ring-primary/50 animate-pulse"
-                        )}
-                      />
-                    </div>
+                    {["openai", "anthropic", "groq"].map((provider) => (
+                      <div key={provider} className="space-y-1">
+                        <Label htmlFor={provider}>
+                          {getProviderName(provider as keyof ApiKeys)}
+                        </Label>
+                        <Input
+                          id={provider}
+                          value={apiKeys[provider as keyof ApiKeys]}
+                          onChange={(e) =>
+                            setApiKeys((prev) => ({
+                              ...prev,
+                              [provider]: e.target.value,
+                            }))
+                          }
+                          className={cn(
+                            "border-2 transition-colors",
+                            providerToHighlight === provider
+                              ? "border-yellow-500"
+                              : "border-transparent"
+                          )}
+                          placeholder={`Enter ${getProviderName(
+                            provider as keyof ApiKeys
+                          )} API key`}
+                        />
+                      </div>
+                    ))}
                   </div>
                   <p className="text-xs text-muted-foreground">
                     🔒 Your API keys are stored securely in your browser's local
