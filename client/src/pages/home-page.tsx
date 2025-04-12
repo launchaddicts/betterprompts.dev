@@ -33,11 +33,7 @@ import {
 } from "@/components/ui/dialog";
 import { useLocation } from "wouter";
 import { ApiKeyContext, ApiKeys } from "../context/ApiKeyContext";
-import {
-  AVAILABLE_MODELS,
-  getProviderForModel,
-  getProviderName,
-} from "../lib/models";
+import { AVAILABLE_MODELS, getProviderName } from "../lib/models";
 import {
   Tooltip,
   TooltipContent,
@@ -47,15 +43,42 @@ import {
 
 export default function HomePage() {
   const [prompt, setPrompt] = useState("");
-  const { apiKeys, openSettings } = useContext(ApiKeyContext);
+  const {
+    apiKeys,
+    openSettings,
+    openSettingsForOpenAI,
+    openSettingsForAnthropic,
+    openSettingsForGroq,
+  } = useContext(ApiKeyContext);
   const [selectedModel, setSelectedModel] = useState(() => {
+    // Start with a default model
     const initialModel = "gpt-4o";
-    const provider = getProviderForModel(initialModel);
-    if (provider && apiKeys[provider]) {
+    const initialModelObj = AVAILABLE_MODELS.find((m) => m.id === initialModel);
+    const provider = initialModelObj?.provider;
+
+    // If we have the key for the default model, use it
+    if (provider && apiKeys[provider] && apiKeys[provider].trim() !== "") {
+      console.log(
+        `Using initial model: ${initialModel}, provider: ${provider}`
+      );
       return initialModel;
     }
-    const firstAvailable = AVAILABLE_MODELS.find((m) => apiKeys[m.provider]);
-    return firstAvailable ? firstAvailable.id : "";
+
+    // Otherwise find the first model we have a key for
+    const firstAvailable = AVAILABLE_MODELS.find(
+      (m) => apiKeys[m.provider] && apiKeys[m.provider].trim() !== ""
+    );
+
+    if (firstAvailable) {
+      console.log(
+        `Using first available model: ${firstAvailable.id}, provider: ${firstAvailable.provider}`
+      );
+      return firstAvailable.id;
+    }
+
+    // If no keys, still use a default so UI has something to display
+    console.log(`No API keys found, defaulting to: ${initialModel}`);
+    return initialModel;
   });
   const [selectedTemplateId, setSelectedTemplateId] = useState("general");
   const [editedTemplates, setEditedTemplates] = useState<
@@ -108,8 +131,39 @@ export default function HomePage() {
   }, []);
 
   const handleModelChange = (model: string) => {
+    // Ensure the model is valid
+    if (!model || model.trim() === "") {
+      console.error("Invalid model passed to handleModelChange");
+      return;
+    }
+
+    console.log(`Changing model from "${selectedModel}" to "${model}"`);
+
+    // Find the model object to get provider info
+    const modelObj = AVAILABLE_MODELS.find((m) => m.id === model);
+    if (!modelObj) {
+      console.error(`Model ${model} not found in AVAILABLE_MODELS`);
+      return;
+    }
+
+    console.log(`Model provider: ${modelObj.provider}`);
+
+    // Get provider info for logging
+    const oldModelObj = AVAILABLE_MODELS.find((m) => m.id === selectedModel);
+    const oldProvider = oldModelObj?.provider || "unknown";
+    const newProvider = modelObj.provider;
+    console.log(`Provider change: ${oldProvider} -> ${newProvider}`);
+
+    // Update the state
     setSelectedModel(model);
+
+    // Save to localStorage
     localStorage.setItem("selected_model", model);
+
+    // Force a re-render to ensure UI updates
+    setTimeout(() => {
+      console.log(`Model is now: ${model}`);
+    }, 0);
   };
 
   const handleTemplateChange = (templateId: string) => {
@@ -144,7 +198,8 @@ export default function HomePage() {
       return;
     }
 
-    const provider = getProviderForModel(selectedModel);
+    const model = AVAILABLE_MODELS.find((m) => m.id === selectedModel);
+    const provider = model?.provider;
     const currentApiKey = provider ? apiKeys[provider] : null;
 
     if (!provider || !currentApiKey) {
@@ -198,8 +253,42 @@ export default function HomePage() {
             <div className="space-y-1.5 md:col-span-1">
               <Label className="text-xs font-medium text-muted-foreground">
                 Model
+                <span className="ml-2 text-xs text-gray-500">
+                  ({selectedModel})
+                </span>
               </Label>
-              <div onClick={() => openSettings()} className="cursor-pointer">
+              <div
+                onClick={() => {
+                  // Get the currently selected model directly
+                  const model = AVAILABLE_MODELS.find(
+                    (m) => m.id === selectedModel
+                  );
+
+                  if (model) {
+                    const provider = model.provider;
+                    console.log(`Selected model provider: ${provider}`);
+
+                    // Open settings for the specific provider
+                    switch (provider) {
+                      case "openai":
+                        openSettingsForOpenAI();
+                        break;
+                      case "anthropic":
+                        openSettingsForAnthropic();
+                        break;
+                      case "groq":
+                        openSettingsForGroq();
+                        break;
+                      default:
+                        openSettingsForOpenAI();
+                    }
+                  } else {
+                    // Fallback
+                    openSettingsForOpenAI();
+                  }
+                }}
+                className="cursor-pointer"
+              >
                 <ModelSelector
                   model={selectedModel}
                   onModelChange={handleModelChange}
@@ -369,11 +458,12 @@ export default function HomePage() {
           <EnhancedOutput
             originalPrompt={prompt}
             model={selectedModel}
-            apiKey={
-              getProviderForModel(selectedModel)
-                ? apiKeys[getProviderForModel(selectedModel)!]
-                : ""
-            }
+            apiKey={(() => {
+              const model = AVAILABLE_MODELS.find(
+                (m) => m.id === selectedModel
+              );
+              return model ? apiKeys[model.provider] : "";
+            })()}
             systemPrompt={getSystemPrompt()}
             onEnhancedTextChange={setEnhancedOutput}
           />

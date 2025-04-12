@@ -1,3 +1,5 @@
+import { AVAILABLE_MODELS } from "./models";
+
 interface EnhancementResult {
   enhanced: string;
   metrics: {
@@ -30,7 +32,8 @@ const modelRules = {
   },
 };
 
-async function callOpenAI(prompt: string, apiKey: string) {
+async function callOpenAI(prompt: string, apiKey: string, modelId: string = "gpt-4o") {
+  console.log(`Calling OpenAI with model: ${modelId}`);
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -38,12 +41,14 @@ async function callOpenAI(prompt: string, apiKey: string) {
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "gpt-4",
+      model: modelId,
       messages: [{ role: "user", content: prompt }],
     }),
   });
 
   if (!response.ok) {
+    const error = await response.text();
+    console.error('OpenAI error:', error);
     throw new Error('OpenAI API call failed');
   }
 
@@ -51,7 +56,8 @@ async function callOpenAI(prompt: string, apiKey: string) {
   return data.choices[0].message.content;
 }
 
-async function callAnthropic(prompt: string, apiKey: string) {
+async function callAnthropic(prompt: string, apiKey: string, modelId: string = "claude-3-opus-20240229") {
+  console.log(`Calling Anthropic with model: ${modelId}`);
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -60,12 +66,14 @@ async function callAnthropic(prompt: string, apiKey: string) {
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: "claude-3-opus-20240229",
+      model: modelId,
       messages: [{ role: "user", content: prompt }],
     }),
   });
 
   if (!response.ok) {
+    const error = await response.text();
+    console.error('Anthropic error:', error);
     throw new Error('Anthropic API call failed');
   }
 
@@ -73,7 +81,8 @@ async function callAnthropic(prompt: string, apiKey: string) {
   return data.content[0].text;
 }
 
-async function callGroq(prompt: string, apiKey: string) {
+async function callGroq(prompt: string, apiKey: string, modelId: string = "llama3-70b-8192") {
+  console.log(`Calling Groq with model: ${modelId}`);
   const response = await fetch('https://api.groq.com/v1/completions', {
     method: 'POST',
     headers: {
@@ -81,12 +90,14 @@ async function callGroq(prompt: string, apiKey: string) {
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "llama3-70b-4096",  
+      model: modelId,
       messages: [{ role: "user", content: prompt }],
     }),
   });
 
   if (!response.ok) {
+    const error = await response.text();
+    console.error('Groq error:', error);
     throw new Error('Groq API call failed');
   }
 
@@ -100,21 +111,51 @@ export async function enhancePrompt(
   apiKey: string,
   systemPrompt: string
 ): Promise<EnhancementResult> {
-  const rules = modelRules[model as keyof typeof modelRules];
-  const fullPrompt = `${systemPrompt}\n\n${rules.prefix}\n\nOriginal prompt: ${prompt}`;
+  console.log(`Enhancing prompt using model: ${model}`);
+  
+  // Find the provider directly from AVAILABLE_MODELS
+  const modelObj = AVAILABLE_MODELS.find(m => m.id === model);
+  
+  // Default provider and prefix if model not found
+  let provider: string = 'openai'; // Default
+  let prefix: string = "Be direct and precise with your instructions."; // Default prefix
+  
+  if (modelObj) {
+    provider = modelObj.provider;
+    
+    // Set the prefix based on provider
+    switch (provider) {
+      case 'openai':
+        prefix = "You are interacting with GPT. Be direct and precise.";
+        break;
+      case 'anthropic':
+        prefix = "When working with Claude, provide structured input.";
+        break;
+      case 'groq':
+        prefix = "For Llama/Mixtral models via Groq, use simple and clear language.";
+        break;
+    }
+    
+    console.log(`Using provider from model object: ${provider} for model: ${model}`);
+  } else {
+    console.log(`Model not found: ${model}, defaulting to OpenAI`);
+  }
+  
+  const fullPrompt = `${systemPrompt}\n\n${prefix}\n\nOriginal prompt: ${prompt}`;
+  console.log(`Using provider: ${provider} for model: ${model}`);
 
   let enhanced: string;
 
   try {
-    switch (rules.provider) {
+    switch (provider) {
       case 'openai':
-        enhanced = await callOpenAI(fullPrompt, apiKey);
+        enhanced = await callOpenAI(fullPrompt, apiKey, model);
         break;
       case 'anthropic':
-        enhanced = await callAnthropic(fullPrompt, apiKey);
+        enhanced = await callAnthropic(fullPrompt, apiKey, model);
         break;
       case 'groq':
-        enhanced = await callGroq(fullPrompt, apiKey);
+        enhanced = await callGroq(fullPrompt, apiKey, model);
         break;
       default:
         throw new Error('Unknown provider');

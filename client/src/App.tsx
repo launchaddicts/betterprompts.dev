@@ -51,11 +51,18 @@ function AppContent() {
     providerToHighlight,
     openSettings,
     closeSettings,
+    setIsSettingsOpen,
   } = useContext(ApiKeyContext);
 
   // Log the providerToHighlight whenever it changes
   useEffect(() => {
-    console.log("Provider to highlight:", providerToHighlight);
+    if (providerToHighlight) {
+      console.log(
+        `[App] Provider highlight changed to: "${providerToHighlight}" (${typeof providerToHighlight})`
+      );
+    } else {
+      console.log("[App] Provider highlight cleared (null)");
+    }
   }, [providerToHighlight]);
 
   const popoverContentRef = React.useRef<HTMLDivElement>(null);
@@ -63,10 +70,11 @@ function AppContent() {
   useEffect(() => {
     let timeoutId: NodeJS.Timeout | null = null;
     if (providerToHighlight) {
-      timeoutId = setTimeout(() => {
-        // Optional: Could re-trigger closeSettings here if we want it to auto-close
-        // closeSettings(); // Currently commented out, so highlight should persist
-      }, 1500); // Remove highlight after 1.5 seconds (if uncommented)
+      // Keep the highlight until user takes an action
+      // We've commented out the auto-clear to let the user see which provider needs a key
+      // timeoutId = setTimeout(() => {
+      //   closeSettings();
+      // }, 5000);
     }
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
@@ -99,9 +107,20 @@ function AppContent() {
               open={isSettingsOpen}
               onOpenChange={(open) => {
                 if (open) {
-                  openSettings();
+                  // Don't affect provider highlight when just opening the settings
+                  setIsSettingsOpen(true);
+                  console.log(
+                    "Settings popover opened, current highlight:",
+                    providerToHighlight
+                  );
                 } else {
+                  // We want to keep the provider highlight when the popover is closed
+                  // so the next time it's opened, the highlight will still be there
                   closeSettings();
+                  console.log(
+                    "Settings popover closed, keeping highlight:",
+                    providerToHighlight
+                  );
                 }
               }}
             >
@@ -123,33 +142,62 @@ function AppContent() {
                       Enter keys for the providers you want to use.
                     </p>
                   </div>
+
                   <div className="grid gap-4">
-                    {["openai", "anthropic", "groq"].map((provider) => (
-                      <div key={provider} className="space-y-1">
-                        <Label htmlFor={provider}>
-                          {getProviderName(provider as keyof ApiKeys)}
-                        </Label>
-                        <Input
-                          id={provider}
-                          value={apiKeys[provider as keyof ApiKeys]}
-                          onChange={(e) =>
-                            setApiKeys((prev) => ({
-                              ...prev,
-                              [provider]: e.target.value,
-                            }))
-                          }
+                    {(
+                      ["openai", "anthropic", "groq"] as Array<keyof ApiKeys>
+                    ).map((provider) => {
+                      // Strict equality check for highlighting
+                      const providerIsHighlighted =
+                        String(provider) === String(providerToHighlight);
+
+                      return (
+                        <div
+                          key={provider}
                           className={cn(
-                            "border-2 transition-colors",
-                            providerToHighlight === provider
-                              ? "border-yellow-500"
-                              : "border-transparent"
+                            "space-y-1 p-3 rounded-md transition-all",
+                            providerIsHighlighted
+                              ? "bg-pink-100 dark:bg-purple-900/30 border-2 border-pink-500 shadow-lg animate-pulse"
+                              : ""
                           )}
-                          placeholder={`Enter ${getProviderName(
-                            provider as keyof ApiKeys
-                          )} API key`}
-                        />
-                      </div>
-                    ))}
+                        >
+                          <Label
+                            htmlFor={provider}
+                            className={cn(
+                              providerIsHighlighted
+                                ? "font-bold text-pink-700 dark:text-purple-400"
+                                : ""
+                            )}
+                          >
+                            {getProviderName(provider)}
+                            {providerIsHighlighted && (
+                              <span className="ml-2 text-xs bg-pink-200 dark:bg-purple-800 text-pink-800 dark:text-purple-200 font-bold px-2 py-1 rounded-md">
+                                Required for selected model
+                              </span>
+                            )}
+                          </Label>
+                          <Input
+                            id={provider}
+                            value={apiKeys[provider]}
+                            onChange={(e) =>
+                              setApiKeys((prev) => ({
+                                ...prev,
+                                [provider]: e.target.value,
+                              }))
+                            }
+                            className={cn(
+                              "border-2 transition-colors",
+                              providerIsHighlighted
+                                ? "border-pink-500 ring-2 ring-purple-400"
+                                : "border-transparent"
+                            )}
+                            placeholder={`Enter ${getProviderName(
+                              provider
+                            )} API key`}
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
                   <p className="text-xs text-muted-foreground">
                     🔒 Your API keys are stored securely in your browser's local

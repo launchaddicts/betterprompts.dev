@@ -1,5 +1,8 @@
 import type { ApiKeys } from "../context/ApiKeyContext";
 
+// Log our provider keys to ensure they're correctly defined
+console.log('Available provider keys:', Object.keys({openai: '', anthropic: '', groq: ''}));
+
 // Define models and their required keys
 export const AVAILABLE_MODELS: { id: string; name: string; provider: keyof ApiKeys }[] = [
     { id: 'gpt-4', name: 'GPT-4', provider: 'openai' },
@@ -13,10 +16,29 @@ export const AVAILABLE_MODELS: { id: string; name: string; provider: keyof ApiKe
     { id: 'mixtral-8x7b-32768', name: 'Mixtral (8x7b)', provider: 'groq' },
 ];
 
+// Log each model with its provider for debugging
+AVAILABLE_MODELS.forEach(model => {
+    console.log(`Model: ${model.name}, Provider: ${model.provider}, Provider type: ${typeof model.provider}`);
+});
+
 // Helper to map model ID to provider key
 export const getProviderForModel = (modelId: string): keyof ApiKeys | null => {
+    console.log(`[models] getProviderForModel called with modelId: "${modelId}", type: ${typeof modelId}`);
+    
+    if (!modelId || typeof modelId !== 'string' || modelId.trim() === '') {
+        console.log('[models] Empty or invalid modelId provided');
+        return null;
+    }
+    
     const model = AVAILABLE_MODELS.find(m => m.id === modelId);
-    return model ? model.provider : null;
+    
+    if (model) {
+        console.log(`[models] Found provider for model ${modelId}: ${model.provider}`);
+        return model.provider;
+    } else {
+        console.log(`[models] No provider found for model ${modelId}`);
+        return null;
+    }
 };
 
 // Helper to get a user-friendly name for a provider key

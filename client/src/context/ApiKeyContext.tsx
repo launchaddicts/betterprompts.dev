@@ -25,9 +25,14 @@ interface ApiKeyContextProps {
   // Helper to check if at least one key exists
   hasAnyKey: boolean;
   isSettingsOpen: boolean;
+  setIsSettingsOpen: Dispatch<SetStateAction<boolean>>;
   providerToHighlight: keyof ApiKeys | null;
   openSettings: (provider?: keyof ApiKeys) => void;
   closeSettings: () => void;
+  // Direct provider-specific methods to avoid type issues
+  openSettingsForOpenAI: () => void;
+  openSettingsForAnthropic: () => void;
+  openSettingsForGroq: () => void;
 }
 
 // Create the context with a default value
@@ -36,9 +41,13 @@ export const ApiKeyContext = createContext<ApiKeyContextProps>({
   setApiKeys: () => {},
   hasAnyKey: false,
   isSettingsOpen: false,
+  setIsSettingsOpen: () => {},
   providerToHighlight: null,
   openSettings: () => {},
   closeSettings: () => {},
+  openSettingsForOpenAI: () => {},
+  openSettingsForAnthropic: () => {},
+  openSettingsForGroq: () => {},
 });
 
 // Define the props for the provider component
@@ -112,29 +121,78 @@ export const ApiKeyProvider: React.FC<ApiKeyProviderProps> = ({ children }) => {
 
   // Function to open settings, optionally setting a provider to highlight
   const openSettings = useCallback((provider?: keyof ApiKeys) => {
-    console.log("[ApiKeyContext] openSettings called with provider:", provider);
-    setProviderToHighlight(provider || null);
-    setIsSettingsOpen(true);
     console.log(
-      "[ApiKeyContext] State updated: isSettingsOpen=true, providerToHighlight=",
-      provider || null
+      "[ApiKeyContext] openSettings called with provider:",
+      provider,
+      typeof provider
     );
+
+    // Provider highlighting with strong type checking
+    if (provider && typeof provider === "string") {
+      // Force string value for clarity in logs
+      const providerString = String(provider);
+      console.log(
+        `[ApiKeyContext] Setting highlight to string value: "${providerString}"`
+      );
+
+      // Type guard to ensure it's a valid provider key
+      if (
+        providerString === "anthropic" ||
+        providerString === "openai" ||
+        providerString === "groq"
+      ) {
+        setProviderToHighlight(providerString as keyof ApiKeys);
+        console.log(
+          `[ApiKeyContext] Provider highlight set to: ${providerString}`
+        );
+      } else {
+        console.log(
+          `[ApiKeyContext] Invalid provider value: ${providerString}`
+        );
+        setProviderToHighlight(null);
+      }
+    } else {
+      console.log("[ApiKeyContext] No provider specified, clearing highlight");
+      setProviderToHighlight(null);
+    }
+
+    // Open settings panel
+    setIsSettingsOpen(true);
   }, []);
 
-  // Function to close settings and clear highlight
+  // Function to close settings but don't clear the highlight
   const closeSettings = useCallback(() => {
-    console.log("[ApiKeyContext] closeSettings called");
-    setIsSettingsOpen(false);
-    setProviderToHighlight(null);
     console.log(
-      "[ApiKeyContext] State updated: isSettingsOpen=false, providerToHighlight=null"
+      "[ApiKeyContext] closeSettings called, current highlight:",
+      providerToHighlight
     );
-  }, []);
+    // Just close the panel, don't clear highlight
+    setIsSettingsOpen(false);
+  }, [providerToHighlight]);
 
   // Check if any key is valid using the validation function
   const hasAnyKey = Object.entries(apiKeys).some(([provider, key]) =>
     isValidApiKey(key, provider as keyof ApiKeys)
   );
+
+  // Direct setter methods for each provider
+  const openSettingsForOpenAI = useCallback(() => {
+    console.log("[ApiKeyContext] Direct call to openSettingsForOpenAI");
+    setProviderToHighlight("openai");
+    setIsSettingsOpen(true);
+  }, []);
+
+  const openSettingsForAnthropic = useCallback(() => {
+    console.log("[ApiKeyContext] Direct call to openSettingsForAnthropic");
+    setProviderToHighlight("anthropic");
+    setIsSettingsOpen(true);
+  }, []);
+
+  const openSettingsForGroq = useCallback(() => {
+    console.log("[ApiKeyContext] Direct call to openSettingsForGroq");
+    setProviderToHighlight("groq");
+    setIsSettingsOpen(true);
+  }, []);
 
   return (
     <ApiKeyContext.Provider
@@ -143,9 +201,13 @@ export const ApiKeyProvider: React.FC<ApiKeyProviderProps> = ({ children }) => {
         setApiKeys: handleSetApiKeys,
         hasAnyKey,
         isSettingsOpen,
+        setIsSettingsOpen,
         providerToHighlight,
         openSettings,
         closeSettings,
+        openSettingsForOpenAI,
+        openSettingsForAnthropic,
+        openSettingsForGroq,
       }}
     >
       {children}
