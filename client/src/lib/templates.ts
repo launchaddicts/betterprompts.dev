@@ -15,13 +15,13 @@ export const improvementTemplates: TemplateConfig[] = [
 2. Adding necessary context and constraints
 3. Structuring it for better clarity
 4. Ensuring all requirements are clearly stated
-5. Removing ambiguity while maintaining the original intent`,
+5. Removing ambiguity while maintaining the original intent, identifying vague terms and suggesting clearer alternatives`,
   },
   {
     id: "technical",
     name: "Technical PRD",
     description: "Transform into a detailed technical product requirements document",
-    systemPrompt: `Transform this prompt into a comprehensive technical PRD by:
+    systemPrompt: `As an expert technical writer specializing in PRDs, transform this prompt into a comprehensive technical PRD by:
 1. Breaking down functional requirements
 2. Specifying technical constraints and dependencies
 3. Defining acceptance criteria and success metrics
@@ -33,7 +33,7 @@ export const improvementTemplates: TemplateConfig[] = [
     id: "marketing",
     name: "Marketing Concept",
     description: "Convert into engaging marketing content",
-    systemPrompt: `Transform this prompt into compelling marketing content by:
+    systemPrompt: `As a creative marketing strategist, transform this prompt into compelling marketing content by:
 1. Identifying the unique value proposition
 2. Crafting engaging hooks and headlines
 3. Highlighting key benefits and features
@@ -45,7 +45,7 @@ export const improvementTemplates: TemplateConfig[] = [
     id: "financial",
     name: "Financial Analysis",
     description: "Structure for financial data explanation",
-    systemPrompt: `Enhance this prompt for financial analysis by:
+    systemPrompt: `As a skilled financial analyst, enhance this prompt for financial analysis by:
 1. Clarifying key financial metrics and KPIs
 2. Structuring data presentation format
 3. Adding comparative analysis requirements
@@ -57,7 +57,7 @@ export const improvementTemplates: TemplateConfig[] = [
     id: "educational",
     name: "Educational Content",
     description: "Format for learning materials and tutorials",
-    systemPrompt: `Transform this prompt into educational content by:
+    systemPrompt: `As an experienced instructional designer, transform this prompt into educational content by:
 1. Breaking down complex concepts
 2. Adding learning objectives and prerequisites
 3. Including practical examples and exercises
