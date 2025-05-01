@@ -41,8 +41,8 @@ export function FloatingApiKeyInput() {
             API Key Required
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Please add an API key in Settings (⚙️ icon top-right) to start
-            improving prompts.
+            Please add an API key in Settings (top-right icon) to get better
+            prompts.
           </CardDescription>
         </CardHeader>
       </Card>
