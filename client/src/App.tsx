@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Wand2, Settings2 } from "lucide-react";
+import { Wand2, Settings2, KeyRound } from "lucide-react";
+import { FaGithub, FaXTwitter } from "react-icons/fa6";
 import React, { useState, useEffect, useContext } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -164,12 +165,41 @@ function AppContent() {
           </div>
         </nav>
 
+        {!hasAnyKey && (
+          <div className="flex items-center justify-center gap-2 text-sm mb-4 p-3 bg-accent/10 rounded-md border border-accent/30 text-foreground">
+            <KeyRound className="h-4 w-4 text-accent shrink-0" />
+            <span>
+              Please add an API key in Settings (
+              <Settings2 className="h-3 w-3 inline-block align-baseline mx-0.5" />
+              ) to get better prompts.
+            </span>
+          </div>
+        )}
+
         <main>
           <HomePage />
         </main>
-
-        {!hasAnyKey && <FloatingApiKeyInput />}
       </div>
+
+      <a
+        href="https://x.com/launchaddict"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-4 left-4 z-50 flex items-center gap-2 px-3 py-1.5 bg-background border border-border rounded-full shadow-md hover:shadow-lg transition-shadow text-sm text-foreground hover:bg-accent/50"
+      >
+        <FaXTwitter className="h-4 w-4" />
+        <span>by @launchaddict</span>
+      </a>
+
+      <a
+        href="https://github.com/launchaddicts/betterprompts.dev"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-4 right-4 z-50 flex items-center gap-2 px-3 py-1.5 bg-background border border-border rounded-full shadow-md hover:shadow-lg transition-shadow text-sm text-foreground hover:bg-accent/50"
+      >
+        <FaGithub className="h-4 w-4" />
+        <span>Contribute</span>
+      </a>
     </div>
   );
 }
